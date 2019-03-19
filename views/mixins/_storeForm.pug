@@ -1,0 +1,15 @@
+mixin storeForm(store = {})
+  - const {_id, name, description, tags } = store;
+  form(action=`/add/${_id || ''}`, method="POST" class="card")
+    label(for="name") Name
+    input(type="text" name="name" value=name)
+    label(for="description") Description
+    textarea(name="description")=description
+    - const choices = ['Wifi', 'Open late', 'Family Friendly', 'Vegetarian']
+    - const tagToCheck = tags || [];
+    ul.tags
+      each choice in choices
+        .tag.tag__choice
+          input(type="checkbox" name="tags" id=choice value=choice checked=(tagToCheck.includes(choice)))
+          label(for=choice)= choice
+    input(type="submit", value="Save Store" class="button")      

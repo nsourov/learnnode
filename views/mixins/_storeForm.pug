@@ -1,10 +1,14 @@
 mixin storeForm(store = {})
-  - const {_id, name, description, tags, location } = store;
-  form(action=`/add/${_id || ''}`, method="POST" class="card")
+  - const {_id, name, description, tags, location, photo } = store;
+  form(action=`/add/${_id || ''}`, method="POST" class="card" enctype="multipart/form-data")
     label(for="name") Name
     input(type="text" name="name" value=name)
     label(for="description") Description
     textarea(name="description")=description
+    label(for="photo") Photo
+    input(type="file" name="photo" id="photo" accept="image/gif, image/png, image/jpeg")
+    if photo
+        img(src=`/uploads/${photo}`, alt=name width=200)
     label(for="address") Address
     input(type="text" name="location[address]" id="address" value=(location && location.address))
     label(for="lng") Address Lng

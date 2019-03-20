@@ -1,15 +1,23 @@
 const express = require("express");
 const router = express.Router();
-const storeController = require("../controllers/storeController");
+const {
+  getStores,
+  addStore,
+  createStore,
+  updateStore,
+  editStore,
+  upload,
+  resize
+} = require("../controllers/storeController");
 
 const { catchErrors } = require("../handlers/errorHandlers");
 
 // Do work here
-router.get("/", catchErrors(storeController.getStores));
-router.get("/stores", catchErrors(storeController.getStores));
-router.get("/add", storeController.addStore);
-router.post("/add", catchErrors(storeController.createStore));
-router.post("/add/:storeId", catchErrors(storeController.updateStore));
-router.get("/stores/:storeId/edit", catchErrors(storeController.editStore));
+router.get("/", catchErrors(getStores));
+router.get("/stores", catchErrors(getStores));
+router.get("/add", addStore);
+router.post("/add", upload, catchErrors(resize), catchErrors(createStore));
+router.post("/add/:storeId", upload, catchErrors(resize), catchErrors(updateStore));
+router.get("/stores/:storeId/edit", catchErrors(editStore));
 
 module.exports = router;

@@ -86,7 +86,7 @@ function autocomplete(input, latInput, lngInput) {
         latInput.value = lat;
         lngInput.value = lng;
     });
-    input.addListener('keydown', function (e) {
+    input.addEventListener('keydown', function (e) {
         if (e.keyCode === 13) e.preventDefault();
     });
 }

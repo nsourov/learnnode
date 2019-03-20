@@ -8,7 +8,7 @@ function autocomplete(input, latInput, lngInput) {
         latInput.value = lat;
         lngInput.value = lng;
     });
-    input.addListener('keydown', (e) => {
+    input.addEventListener('keydown', (e) => {
         if(e.keyCode === 13) e.preventDefault();
     })
 }

@@ -1,10 +1,16 @@
 mixin storeForm(store = {})
-  - const {_id, name, description, tags } = store;
+  - const {_id, name, description, tags, location } = store;
   form(action=`/add/${_id || ''}`, method="POST" class="card")
     label(for="name") Name
     input(type="text" name="name" value=name)
     label(for="description") Description
     textarea(name="description")=description
+    label(for="address") Address
+    input(type="text" name="location[address]" id="address" value=(location && location.address))
+    label(for="lng") Address Lng
+    input(type="text" id="lng" name="location[coordinates][0]" value=(location && location.coordinates[0]))
+    label(for="lat") Address Lat
+    input(type="text" id="lat" name="location[coordinates][1]" value=(location && location.coordinates[1]))
     - const choices = ['Wifi', 'Open late', 'Family Friendly', 'Vegetarian']
     - const tagToCheck = tags || [];
     ul.tags

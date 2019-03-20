@@ -26,6 +26,7 @@ exports.editStore = async (req, res) => {
   res.render("editStore", { title: `Edit ${store.name}`, store });
 };
 exports.updateStore = async (req, res) => {
+  req.body.location.type = 'Point';
   const store = await Store.findByIdAndUpdate(req.params.storeId, req.body, {
     new: true,
     runValidators: true

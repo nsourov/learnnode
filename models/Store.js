@@ -1,23 +1,43 @@
 const mongoose = require("mongoose");
 mongoose.Promise = global.Promise;
-const slug = require('slugs');
+const slug = require("slugs");
 
 const StoreSchema = new mongoose.Schema({
- name: {
-   type: String,
-   trim: true,
-   required: 'Please enter a slug name!'
- },
- slug: String,
- description: {
-   type: String,
-   trim: true
- },
- tags: [String]
+  name: {
+    type: String,
+    trim: true,
+    required: "Please enter a slug name!"
+  },
+  slug: String,
+  description: {
+    type: String,
+    trim: true
+  },
+  tags: [String],
+  created: {
+    type: Date,
+    default: Date.now
+  },
+  location: {
+    type: {
+      type: String,
+      default: "Point"
+    },
+    coordinates: [
+      {
+        type: Number,
+        required: "You must supply coordinates"
+      }
+    ],
+    address: {
+      type: String,
+      required: "You must supply address"
+    }
+  }
 });
 
-StoreSchema.pre('save', function(next){
-  if(!this.isModified('name')){
+StoreSchema.pre("save", function(next) {
+  if (!this.isModified("name")) {
     next();
     return;
   }
@@ -25,4 +45,4 @@ StoreSchema.pre('save', function(next){
   next();
 });
 
-module.exports = mongoose.model('Store', StoreSchema);
+module.exports = mongoose.model("Store", StoreSchema);

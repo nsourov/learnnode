@@ -1,7 +1,10 @@
 extends layout
 
+include mixins/_reviewForm
+include mixins/_review
+
 block content
-  -const { name, description, slug, photo, location, tags } = store;
+  -const { name, description, slug, photo, location, tags , reviews} = store;
   .single
     .single__hero
       img.single__image(src=`/uploads/${photo}` || 'store.png') 
@@ -18,3 +21,10 @@ block content
           li.tag
             a.tag__link(href=`/tags/${tag}`)
               span.tag__text ##{tag}
+    if user
+      +reviewForm(store)    
+    if reviews
+      .reviews
+        each review in reviews
+          .review
+            +review(review)

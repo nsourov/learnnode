@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Store = mongoose.model("Store");
+const User = mongoose.model("User");
 const multer = require("multer");
 const jimp = require("jimp");
 const uuid = require("uuid");
@@ -17,11 +18,11 @@ const multerOptions = {
 };
 
 exports.homePage = (req, res) => {
-  res.render("index");
+  return res.render("index");
 };
 
 exports.addStore = (req, res) => {
-  res.render("editStore", { title: "Add Store" });
+  return res.render("editStore", { title: "Add Store" });
 };
 
 exports.upload = multer(multerOptions).single("photo");
@@ -46,24 +47,24 @@ exports.createStore = async (req, res) => {
     "success",
     `Successfully Created ${store.name}. Care to leave a review?`
   );
-  res.redirect(`/stores/${store.slug}`);
+  return res.redirect(`/stores/${store.slug}`);
 };
 
 exports.getStores = async (req, res) => {
-  const stores = await Store.find();
-  res.render("stores", { title: "Stores", stores, user: req.user });
+  const stores = await Store.find().populate('reviews');
+  return res.render("stores", { title: "Stores", stores, user: req.user });
 };
 
 const confirmOwner = (store, user) => {
-  if(!store.author.equals(user._id)){
-    throw new Error('You must own the store in order to edit this!')
+  if (!store.author.equals(user._id)) {
+    throw new Error("You must own the store in order to edit this!");
   }
 };
 
 exports.editStore = async (req, res) => {
   const store = await Store.findById(req.params.storeId);
   confirmOwner(store, req.user);
-  res.render("editStore", { title: `Edit ${store.name}`, store });
+  return res.render("editStore", { title: `Edit ${store.name}`, store });
 };
 exports.updateStore = async (req, res) => {
   req.body.location.type = "Point";
@@ -72,15 +73,17 @@ exports.updateStore = async (req, res) => {
     runValidators: true
   }).exec();
   req.flash("success", "Successfully Updated");
-  res.redirect(`/stores/${store.slug}`);
+  return res.redirect(`/stores/${store.slug}`);
 };
-exports.getStoreBySlug = async (req, res) => {
-  const store = await Store.findOne({ slug: req.params.slug }).populate('author');
+exports.getStoreBySlug = async (req, res, next) => {
+  const store = await Store.findOne({ slug: req.params.slug }).populate(
+    "author reviews"
+  );
   if (!store) {
     next();
     return;
   }
-  res.render("store", { store, title: store.name });
+  return res.render("store", { store, title: store.name });
 };
 
 exports.getStoresByTag = async (req, res) => {
@@ -89,5 +92,67 @@ exports.getStoresByTag = async (req, res) => {
   const tagsPromise = Store.getTagsList();
   const storesPromise = Store.find({ tags: tagQuery });
   const [tags, stores] = await Promise.all([tagsPromise, storesPromise]);
-  res.render("tag", { title: "Tags", tags, tag, stores });
+  return res.render("tag", { title: "Tags", tags, tag, stores });
+};
+
+exports.searchStores = async (req, res) => {
+  const stores = await Store.find(
+    {
+      $text: {
+        $search: req.query.q
+      }
+    },
+    {
+      score: { $meta: "textScore" }
+    }
+  )
+    .sort({
+      score: { $meta: "textScore" }
+    })
+    .limit(5);
+  return res.json(stores);
+};
+
+exports.mapStore = async (req, res) => {
+  const coordinates = [req.query.lng, req.query.lat].map(parseFloat);
+  const q = {
+    location: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates
+        },
+        $maxDistance: 10000
+      }
+    }
+  };
+  const stores = await Store.find(q).limit(10);
+  return res.json(stores);
+};
+
+exports.mapPage = (req, res) => {
+  return res.render("map", { title: "Map" });
+};
+exports.heartStore = async (req, res) => {
+  const hearts = req.user.hearts.map(obj => obj.toString());
+  const operator = hearts.includes(req.params.id) ? "$pull" : "$addToSet";
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      [operator]: { hearts: req.params.id }
+    },
+    { new: true }
+  );
+  return res.json(user);
+};
+
+exports.getHearts = async (req, res) => {
+  const stores = await Store.find({
+    _id: { $in: req.user.hearts }
+  });
+  return res.render("stores", { title: "Hearted Stores", stores });
+};
+exports.getTopStores = async (req, res) => {
+  const stores = await Store.getTopStores();
+  res.render("topStores", { title: "Top Stores!", stores });
 };
